@@ -1,0 +1,2 @@
+include ':app', ':thermal-printer-core', ':thermal-printer-bt'
+rootProject.name='Thermal Printer Sample'
