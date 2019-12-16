@@ -5,50 +5,345 @@ import kotlin.experimental.or
 
 object PrinterCommands {
 
-    /*
-    * LF
-    * Print and line feed
-    *
-    * LF prints the data in the print buffer and feeds one line.
-    * When the print buffer is empty, LF feeds one line.
-    * */
+    /////////////////////////////////////// PRINT COMMANDS /////////////////////////////////////////
+    /**
+     * ### LF
+     * Print and line feed
+     *
+     * Prints the data in the print buffer and feeds one line, based on the current line spacing.
+     * When the print buffer is empty, LF feeds one line.
+     *
+     *
+     * @return `ByteArray` with command
+     *
+     * */
     fun lineFeed(): ByteArray {
         return byteArrayOf(AsciiByte.LF)
     }
 
-    /*
-    * ESC J n
-    * Print and feed paper
-    *
-    * n = 0-255
-    * ESC J prints the data in the print buffer and feeds n dots.
-    * The command will not change the setting set by command ESC 2，ESC 3.
-    * */
+    /**
+     * ### FF
+     * Print and return to Standard mode (in Page mode)
+     *
+     * In Page mode, prints all the data in the print buffer collectively and switches from Page
+     * mode to Standard mode.
+     *
+     * @return `ByteArray` with command
+     * */
+    fun returnToStandardMode(): ByteArray {
+        return byteArrayOf(AsciiByte.FF)
+    }
+
+    /**
+     * ### CR
+     * Print and carriage return
+     *
+     * Executes one of the following operations:
+     * ```
+     * |-----------------------------------------------------------------------------------------|
+     * | Print head alignment | When auto line feed is enabled | When auto line feed is disabled |
+     * |-----------------------------------------------------------------------------------------|
+     * | Horizontal alignment | Executes printing and one      | This command is ignored.        |
+     * |                      | line feed as LF                |                                 |
+     * |-----------------------------------------------------------------------------------------|
+     * | Vertical alignment   | Executes printing and one      | In Standard mode, prints the    |
+     * |                      | line feed as LF                | data in the print buffer and    |
+     * |                      |                                | moves the print position to the |
+     * |                      |                                | beginning of the print line.    |
+     * |                      |                                | in Page mode, moves the print   |
+     * |                      |                                | position to the beginning of    |
+     * |                      |                                | the print line.                 |
+     * |-----------------------------------------------------------------------------------------|
+     * ```
+     * **Horizontal alignment** is applied to Line thermal head or Shuttle head.
+     *
+     * **Vertical alignment** is applied to Serial dot head.
+     *
+     * @return `ByteArray` with command
+     * */
+    fun printAndCarriageReturn(): ByteArray {
+        return byteArrayOf(AsciiByte.CR)
+    }
+
+    /**
+     * ### ESC FF
+     * Print data in Page mode
+     *
+     * In Page mode, prints the data in the print buffer collectively.
+     *
+     * @return `ByteArray` with command
+     * */
+    fun printDataInPageMode(): ByteArray {
+        return byteArrayOf(AsciiByte.ESC, AsciiByte.FF)
+    }
+
+    /**
+     * ### ESC J n
+     * Print and feed paper
+     *
+     * n = 0-255
+     *
+     * ESC J prints the data in the print buffer and feeds n dots.
+     *
+     * The command will not change the setting set by command ESC 2，ESC 3.
+     *
+     * @param dots n
+     *
+     * @return `ByteArray` with command
+     * */
     fun printAndFeed(@IntRange(from = 0, to = 255) dots: Int): ByteArray {
         return byteArrayOf(AsciiByte.ESC, AsciiByte.UPPERCASE_J, dots.toByte())
     }
 
-    /*
-    * ESC 2
-    * Select default line spacing
-    *
-    * ESC 2 sets the line space to default value (30 dots)
-    * */
+    /**
+     * ### ESC K n
+     * Print and reverse feed
+     *
+     * Prints the data in the print buffer and feeds the paper
+     *
+     * n × (vertical or horizontal motion unit) in the reverse direction.
+     *
+     * @param dots n
+     *
+     * @return `ByteArray` with command
+     * */
+    fun printAndReverseFeed(dots: Int): ByteArray {
+        return byteArrayOf(AsciiByte.ESC, AsciiByte.UPPERCASE_K, dots.toByte())
+    }
+
+    /**
+     * ### ESC d n
+     * Print and feed n lines
+     *
+     * n = 0-255
+     *
+     * Prints the data in the print buffer and feeds n lines.
+     *
+     * @param lines n
+     *
+     * @return `ByteArray` with command
+     * */
+    fun printAndLineFeed(@IntRange(from = 0, to = 255) lines: Int): ByteArray {
+        return byteArrayOf(AsciiByte.ESC, AsciiByte.LOWERCASE_D, lines.toByte())
+    }
+
+    /**
+     * ### ESE e n
+     * Print and reverse feed n lines
+     *
+     * Prints the data in the print buffer and feeds n lines in the reverse direction.
+     *
+     * @param lines n
+     *
+     * @return `ByteArray` with command
+     * */
+    fun printAndReverseLine(lines: Int): ByteArray {
+        return byteArrayOf(AsciiByte.ESC, AsciiByte.LOWERCASE_E, lines.toByte())
+    }
+
+    /////////////////////////////////////// PRINT COMMANDS /////////////////////////////////////////
+
+
+    /////////////////////////////////// LINE SPACING COMMANDS //////////////////////////////////////
+
+    /**
+     * ### ESC 2
+     * Select default line spacing
+     *
+     * ESC 2 sets the line space to default value (30 dots)
+     *
+     * @return `ByteArray` with command
+     * */
     fun defaultLineSpacing(): ByteArray {
         return byteArrayOf(AsciiByte.ESC, AsciiByte.DIGIT_2)
     }
 
-    /*
-    * ESC 3 n
-    * Set line spacing
-    *
-    * n = 0-255
-    * ESC 3 n sets the line spacing to n dots.
-    * The default value is 30
-    * */
+    /**
+     * ### ESC 3 n
+     * Set line spacing
+     *
+     * n = 0-255
+     *
+     * ESC 3 n sets the line spacing to n dots. The default value is 30
+     *
+     * @return `ByteArray` with command
+     * */
     fun setLineSpacing(@IntRange(from = 0, to = 255) dots: Int): ByteArray {
         return byteArrayOf(AsciiByte.ESC, AsciiByte.DIGIT_3, dots.toByte())
     }
+
+    /////////////////////////////////// LINE SPACING COMMANDS //////////////////////////////////////
+
+
+    ///////////////////////////////////// CHARACTER COMMANDS ///////////////////////////////////////
+
+    /**
+     * ### CAN
+     * Cancel print data in Page mode
+     *
+     * in Page mode, deletes all the print data in the current print area.
+     *
+     * @return `ByteArray` with command
+     * */
+    fun cancelPrint(): ByteArray {
+        return byteArrayOf(AsciiByte.CAN)
+    }
+
+    /**
+     * ### ESC SP n
+     * Set right-side character spacing
+     *
+     * n = 0–255
+     *
+     * Sets the right-side character spacing to n × (horizontal or vertical motion unit).
+     *
+     * @param dots n
+     *
+     * @return `ByteArray` with command
+     * */
+    fun setRightSodeCharacterSpacing(@IntRange(from = 0, to = 255) dots: Int): ByteArray {
+        return byteArrayOf(AsciiByte.ESC, AsciiByte.SPACE, dots.toByte())
+    }
+
+    /**
+     * ### ESC ! n
+     * Select print mode
+     *
+     * The default value is 0. This command is effective for all characters.
+     *
+     * * BIT0:
+     * * BIT1:
+     * * BIT2:
+     * * BIT3: 1:Emphasized mode selected
+     *       0:Emphasized mode not selected
+     * * BIT4: 1:Double Height mode selected
+     *       0:Double Height mode not selected
+     * * BIT5: 1:Double Width mode selected
+     *       0:Double Width mode not selected
+     * * BIT6: 1:Deleteline mode selected
+     *       0:Deleteline mode not selected
+     * * BIT7: 1:Underline mode selected
+     *       0:Underline mode not selected
+     *
+     *  @param bold to set font as bold, default is false
+     *  @param largeHeight to set font height large, default is false
+     *  @param largeWidth to set font width large, default is false
+     *  @param deleteLine to set font as delete line, default is false
+     *  @param underLine to set font as underlined, default is false
+     *
+     *  @return ByteArray with command
+     * */
+    fun setPrintMode(
+        bold: Boolean = false,
+        largeHeight: Boolean = false,
+        largeWidth: Boolean = false,
+        deleteLine: Boolean = false,
+        underLine: Boolean = false
+    ): ByteArray {
+        var default: Byte = 0b00000000
+        if (underLine) default = default or 0b10000000.toByte()
+        if (deleteLine) default = default or 0b01000000.toByte()
+        if (largeWidth) default = default or 0b00100000.toByte()
+        if (largeHeight) default = default or 0b00010000.toByte()
+        if (bold) default = default or 0b00001000.toByte()
+        return byteArrayOf(AsciiByte.ESC, AsciiByte.EXCLAMATION_MARK, default)
+    }
+
+    /**
+     * ### ESC - n
+     * Turn underline mode on/off
+     *
+     * Turns underline mode on or off using n as follows:
+     *
+     * ```
+     * |------------------------------------------------|
+     * |   n   | Function                               |
+     * |------------------------------------------------|
+     * | 0, 48	| Turns off underline mode               |
+     * | 1, 49	| Turns on underline mode (1-dot thick)  |
+     * | 2, 50	| Turns on underline mode (2-dots thick) |
+     * |------------------------------------------------|
+     * ```
+     *
+     * @param n dots
+     *
+     * @return ByteArray with command
+     * */
+    fun setUnderlineMode(@IntRange(from = 0, to = 2) n: Int): ByteArray {
+        return byteArrayOf(AsciiByte.ESC, AsciiByte.HYPHEN, n.toByte())
+    }
+
+    /**
+     * ### ESC E n
+     * Turn emphasized mode on/off
+     *
+     * n = 0 – 255
+     *
+     * Turns emphasized mode on or off.
+     * * When the LSB of n is 0, emphasized mode is turned off.
+     * * When the LSB of n is 1, emphasized mode is turned on.
+     *
+     * @param enable to enable emphasized mode
+     *
+     * @return `ByteArray` with command
+     * */
+    fun setEmphasizeMode(enable: Boolean): ByteArray {
+        val mode: Byte = if (enable) 0b00000001 else 0b00000000
+        return byteArrayOf(AsciiByte.ESC, AsciiByte.UPPERCASE_E, mode)
+    }
+
+    /**
+     * ### ESC G n
+     * Turn double-strike mode on/off
+     *
+     * n = 0 – 255
+     *
+     * Turns double-strike mode on or off.
+     * * When the LSB of n is 0, double-strike mode is turned off.
+     * * When the LSB of n is 1, double-strike mode is turned on.
+     *
+     * @param enable to enable double-strike mode
+     *
+     * @return `ByteArray` with command
+     * */
+    fun setDoubleStrikeMode(enable: Boolean): ByteArray {
+        val mode: Byte = if (enable) 0b00000001 else 0b00000000
+        return byteArrayOf(AsciiByte.ESC, AsciiByte.UPPERCASE_G, mode)
+    }
+
+    /**
+     * ### ESC M n
+     * Select character font
+     *
+     * n = different depending on printers
+     *
+     * Selects a character font, using n as follows:
+     * ```
+     * |------------------------|
+     * |   n   |      Font      |
+     * |------------------------|
+     * | 0, 48 |    Font A      |
+     * | 1, 49 |    Font B      |
+     * | 2, 50 |    Font C      |
+     * | 3, 51 |    Font D      |
+     * | 4, 52 |    Font E      |
+     * |  97   | Special font A |
+     * |  98   | Special font B |
+     * --------------------------
+     * ```
+     * @param font selected font
+     *
+     * @return `ByteArray` with command
+     * */
+    fun selectCharacterFont(font: Int): ByteArray {
+        return byteArrayOf(AsciiByte.ESC, AsciiByte.UPPERCASE_M, font.toByte())
+    }
+
+
+
+
+    ///////////////////////////////////// CHARACTER COMMANDS ///////////////////////////////////////
+
 
     /*
     * ESC a n
@@ -80,40 +375,6 @@ object PrinterCommands {
         return byteArrayOf(AsciiByte.ESC, AsciiByte.UPPERCASE_B, charNum.toByte())
     }
 
-    /*
-    * ESC ! n
-    * Select print mode
-    *
-    * The default value is 0. This command is effective for all characters.
-    * BIT0:
-    * BIT1:
-    * BIT2:
-    * BIT3: 1:Emphasized mode selected
-    *       0:Emphasized mode not selected
-    * BIT4: 1:Double Height mode selected
-    *       0:Double Height mode not selected
-    * BIT5: 1:Double Width mode selected
-    *       0:Double Width mode not selected
-    * BIT6: 1:Deleteline mode selected
-    *       0:Deleteline mode not selected
-    * BIT7: 1:Underline mode selected
-    *       0:Underline mode not selected
-    * */
-    fun setPrintMode(
-        bold: Boolean = false,
-        largeHeight: Boolean = false,
-        largeWidth: Boolean = false,
-        deleteLine: Boolean = false,
-        underLine: Boolean = false
-    ): ByteArray {
-        var default: Byte = 0b00000000
-        if (underLine) default = default or 0b10000000.toByte()
-        if (deleteLine) default = default or 0b01000000.toByte()
-        if (largeWidth) default = default or 0b00100000.toByte()
-        if (largeHeight) default = default or 0b00010000.toByte()
-        if (bold) default = default or 0b00001000.toByte()
-        return byteArrayOf(AsciiByte.ESC, AsciiByte.EXCLAMATION_MARK, default)
-    }
 
     /*
     * ESC SO
@@ -548,6 +809,17 @@ object PrinterCommands {
     * ----------------------------------------------------------
     * */
     fun printBarcode2(@IntRange(from = 65, to = 75) m: Int, data: String): ByteArray {
+
+        val codeSelection = 123
+
+        val codeA = 65
+        val codeB = 66
+        val codeC = 67
+
+        val length = (data.length + 2)
+
+        val data = byteArrayOf(codeSelection.toByte(), codeA.toByte(), *data.toByteArray())
+
         return byteArrayOf(
             AsciiByte.GS,
             AsciiByte.LOWERCASE_K,
