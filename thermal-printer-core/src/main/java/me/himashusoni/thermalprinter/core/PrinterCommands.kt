@@ -339,6 +339,99 @@ object PrinterCommands {
         return byteArrayOf(AsciiByte.ESC, AsciiByte.UPPERCASE_M, font.toByte())
     }
 
+    /**
+     * ESC R n
+     * Select international character set
+     *
+     * Selects an international character set n as follows:
+     * ```
+     * ----------------------------
+     * |  n  |      Country       |
+     * ----------------------------
+     * |  0  |       U.S.A.       |
+     * |  1  |      France        |
+     * |  2  |      Germany       |
+     * |  3  |       U.K.         |
+     * |  4  |     Denmark I      |
+     * |  5  |      Sweden        |
+     * |  6  |       Italy        |
+     * |  7  |      Spain I       |
+     * |  8  |       Japan        |
+     * |  9  |      Norway        |
+     * | 10  |     Denmark II     |
+     * | 11  |     Spain II       |
+     * | 12  |   Latin America    |
+     * | 13  |       Korea        |
+     * | 14  | Slovenia / Croatia |
+     * | 15  |      China         |
+     * | 16  |     Vietnam        |
+     * | 17  |      Arabia        |
+     * | 66  | India (Devanagari) |
+     * | 67  |  India (Bengali)   |
+     * | 68  |   India (Tamil)    |
+     * | 69  |   India (Telugu)   |
+     * | 70  |  India (Assamese)  |
+     * | 71  |   India (Oriya)    |
+     * | 72  |   India (Kannada)  |
+     * | 73  |  India (Malayalam) |
+     * | 74  |  India (Gujarati)  |
+     * | 75  |  India (Punjabi)   |
+     * | 82  |   India (Marathi)  |
+     * ----------------------------
+     * ```
+     * @param n selected international character set
+     *
+     * @return `ByteArray` with command
+     * */
+    fun selectInternationalCharacterSet(n: Int): ByteArray {
+        return byteArrayOf(AsciiByte.ESC, AsciiByte.UPPERCASE_R, n.toByte())
+    }
+
+    /**
+     * ESC V n
+     * Turn 90° clockwise rotation mode
+     *
+     * n = 0–2, 48–50, default 0
+     *In Standard mode, turns 90° clockwise rotation mode on or off for characters, using n as follows:
+     * ```
+     * ----------------------------------------------------------------------------
+     * |   n   |             Function                                             |
+     * ----------------------------------------------------------------------------
+     * | 0, 48 | Turns off 90° clockwise rotation mode                            |
+     * | 1, 49 | Turns on 90° clockwise rotation mode (1-dot character spacing)   |
+     * | 2, 50 | Turns on 90° clockwise rotation mode (1.5-dot character spacing) |
+     * ----------------------------------------------------------------------------
+     * ```
+     * @param n turn on or off rotation
+     *
+     * @return `ByteArray` with command
+     * */
+    fun turn90degreeClockwiseRotationMode(n: Int): ByteArray {
+        return byteArrayOf(AsciiByte.ESC, AsciiByte.UPPERCASE_V, n.toByte())
+    }
+
+    /**
+     * ESC r n
+     * Select print color
+     *
+     * n = 0, 1, 48, 49, default 0
+     * Selects a print color, using n as follows:
+     * ```
+     * ----------------------|
+     * |   n   | Print color |
+     * ----------------------|
+     * | 0, 48 |   Black     |
+     * | 1, 49 |    Red      |
+     * ----------------------|
+     * ```
+     * @param n color
+     *
+     * @return `ByteArray` with command
+     * */
+    fun selectPrintColor(n: Int): ByteArray {
+        return byteArrayOf(AsciiByte.ESC, AsciiByte.LOWERCASE_R, n.toByte())
+    }
+
 
 
 
