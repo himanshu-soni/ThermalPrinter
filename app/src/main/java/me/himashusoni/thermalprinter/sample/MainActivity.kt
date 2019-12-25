@@ -1,8 +1,7 @@
 package me.himashusoni.thermalprinter.sample
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import androidx.core.content.ContextCompat
+import androidx.appcompat.app.AppCompatActivity
 import me.himashusoni.thermalprinter.core.PrinterCommands
 
 class MainActivity : AppCompatActivity() {
@@ -11,6 +10,6 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        PrinterCommands.setU
+
     }
 }

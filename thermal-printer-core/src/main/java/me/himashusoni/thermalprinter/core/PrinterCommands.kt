@@ -154,7 +154,7 @@ object PrinterCommands {
      *
      * @return `ByteArray` with command
      * */
-    fun defaultLineSpacing(): ByteArray {
+    fun setDefaultLineSpacing(): ByteArray {
         return byteArrayOf(AsciiByte.ESC, AsciiByte.DIGIT_2)
     }
 
@@ -335,7 +335,7 @@ object PrinterCommands {
      *
      * @return `ByteArray` with command
      * */
-    fun selectCharacterFont(font: Int): ByteArray {
+    fun setCharacterFont(font: Int): ByteArray {
         return byteArrayOf(AsciiByte.ESC, AsciiByte.UPPERCASE_M, font.toByte())
     }
 
@@ -383,7 +383,7 @@ object PrinterCommands {
      *
      * @return `ByteArray` with command
      * */
-    fun selectInternationalCharacterSet(n: Int): ByteArray {
+    fun setInternationalCharacterSet(n: Int): ByteArray {
         return byteArrayOf(AsciiByte.ESC, AsciiByte.UPPERCASE_R, n.toByte())
     }
 
@@ -406,7 +406,7 @@ object PrinterCommands {
      *
      * @return `ByteArray` with command
      * */
-    fun turn90degreeClockwiseRotationMode(n: Int): ByteArray {
+    fun set90degreeClockwiseRotationMode(n: Int): ByteArray {
         return byteArrayOf(AsciiByte.ESC, AsciiByte.UPPERCASE_V, n.toByte())
     }
 
@@ -428,7 +428,7 @@ object PrinterCommands {
      *
      * @return `ByteArray` with command
      * */
-    fun selectPrintColor(n: Int): ByteArray {
+    fun setPrintColor(n: Int): ByteArray {
         return byteArrayOf(AsciiByte.ESC, AsciiByte.LOWERCASE_R, n.toByte())
     }
 
@@ -505,16 +505,376 @@ object PrinterCommands {
      * | 255 | Page 255                                    |
      * -----------------------------------------------------
      * ```
+     *
      * @param n character code
      *
      * @return `ByteArray` with command
      * */
-    fun selectCharacterCode(n: Int): ByteArray {
+    fun setCharacterCode(n: Int): ByteArray {
         return byteArrayOf(AsciiByte.ESC, AsciiByte.LOWERCASE_T, n.toByte())
     }
 
+    /**
+     * ESC { n
+     * Turn upside down printing mode on/off
+     *
+     * n = 0 – 255, default 0
+     *
+     * In Standard mode, turns upside-down print mode on or off.
+     * * When the LSB of n is 0, upside-down print mode is turned off.
+     * * When the LSB of n is 1, upside-down print mode is turned on.
+     *
+     * @param enable true to enable upside down mode, false to disable
+     *
+     * @return `ByteArray` with command
+     */
+    fun setUpsideDownPrintingMode(enable: Boolean): ByteArray {
+        val mode: Byte = if (enable) 0b00000001 else 0b00000000
+        return byteArrayOf(AsciiByte.ESC, AsciiByte.LEFT_BRACE, mode)
+    }
+
+    /**
+     * GS ! n
+     * Select character size
+     *
+     * n = 0xxx0xxxb (n = 0 – 7, 16 – 23, 32 – 39, 48 – 55, 64 – 71, 80 – 87, 96 – 103, 112 – 119)
+     * (Enlargement in vertical direction: 1–8, Enlargement in horizontal direction: 1–8), default 0
+     *
+     * Selects character size (height magnification and width magnification).
+     * ```
+     * -----------------------------------------------------------------------------------
+     * | (n) Bit |             Function             |       Hex      |     Decimal       |
+     * -----------------------------------------------------------------------------------
+     * |   0–2   | Selects the height magnification | See table [Height magnification].  |
+     * |    3    | (Reserved)                       |      00        |        0          |
+     * |   4–6   | Selects the width magnification  | See table [Width magnification].   |
+     * |    7    | (Reserved)                       |      00        |        0          |
+     * -----------------------------------------------------------------------------------
+     * ```
+     * Character width selection
+     * ```
+     * ---------------------------------------------------------
+     * |        Bit      |  Hex | Decimal |        Width       |
+     * |  6  |  5  |  4  |      |         |                    |
+     * --------------------------------------------------------|
+     * |  0  |  0  |  0  |  00  |    0    |    x 1 (normal)    |
+     * |  0  |  0  |  1  |  10  |    16   | x 2 (double-width) |
+     * |  0  |  1  |  0  |  20  |    32   |        x 3         |
+     * |  0  |  1  |  1  |  30  |    48   |        x 4         |
+     * |  1  |  0  |  0  |  40  |    64   |        x 5         |
+     * |  1  |  0  |  1  |  50  |    80   |        x 6         |
+     * |  1  |  1  |  0  |  60  |    96   |        x 7         |
+     * |  1  |  1  |  1  |  70  |   112   |        x 8         |
+     * ---------------------------------------------------------
+     * ```
+     * Character height selection
+     * ```
+     * ----------------------------------------------------------
+     * |        Bit      |  Hex | Decimal |        Height       |
+     * |  2  |  1  |  0  |      |         |                     |
+     * ----------------------------------------------------------
+     * |  0  |  0  |  0  |  00  |    0    |    x 1 (normal)     |
+     * |  0  |  0  |  1  |  01  |    1    | x 2 (double-height) |
+     * |  0  |  1  |  0  |  02  |    2    |         x 3         |
+     * |  0  |  1  |  1  |  03  |    3    |         x 4         |
+     * |  1  |  0  |  0  |  04  |    4    |         x 5         |
+     * |  1  |  0  |  1  |  05  |    5    |         x 6         |
+     * |  1  |  1  |  0  |  06  |    6    |         x 7         |
+     * |  1  |  1  |  1  |  07  |    7    |         x 8         |
+     * ----------------------------------------------------------
+     * ```
+     * @param width size of width from 1 to 8
+     * @param height size of height from 1 to 8
+     *
+     * @return `ByteArray` with command
+     * */
+    fun setCharacterSize(
+        @IntRange(from = 1, to = 8) width: Int,
+        @IntRange(from = 1, to = 8) height: Int
+    ): ByteArray {
+        val widthBits654 = ((width - 1) shl 4)
+        val heightBits210 = (height - 1)
+        val size = widthBits654 or heightBits210
+        return byteArrayOf(AsciiByte.GS, AsciiByte.EXCLAMATION_MARK, size.toByte())
+    }
+
+    /**
+     * GS B n
+     * Turn white/black reverse printing mode on/off
+     *
+     * n = 0 – 255, default 0
+     * Turns white/black reverse print mode on or off.
+     * * When the LSB of n is 0, white/black reverse print mode is turned off.
+     * * When the LSB of n is 1, white/black reverse print mode is turned on.
+     *
+     * @param reverse true to enable color reverse, false to disable
+     *
+     * @return `ByteArray` with command
+     * */
+    fun setColorReverse(reverse: Boolean): ByteArray {
+        val mode = if (reverse) 0b00000001 else 0b00000000
+        return byteArrayOf(AsciiByte.GS, AsciiByte.UPPERCASE_B, mode.toByte())
+    }
+
+
+    /**
+     * GS b n
+     * Turn smoothing mode on/off
+     *
+     * n = 0 – 255, default 0
+     * Turns smoothing mode on or off.
+     * * When the LSB of n is 0, smoothing mode is turned off.
+     * * When the LSB of n is 1, smoothing mode is turned on.
+     *
+     * @param enable true to enable smoothing mode, false to disable
+     *
+     * @return `ByteArray` with command
+     * */
+    fun setSmoothingMode(enable: Boolean): ByteArray {
+        val mode = if (enable) 0b00000001 else 0b00000000
+        return byteArrayOf(AsciiByte.GS, AsciiByte.LOWERCASE_B, mode.toByte())
+    }
+
+
+    /**
+     * ESC % n
+     * Enable Disable User-defined Characters
+     *
+     * n = 0 – 255, default 0
+     * Selects or cancels the user-defined character set.
+     * * When the LSB of n is 0, the user-defined character set is canceled.
+     * * When the LSB of n is 1, the user-defined character set is selected.
+     *
+     * @param enable true to enable user defined characters, false to disable
+     *
+     * @return `ByteArray` with command
+     * */
+    fun enableUserDefinedCharacters(enable: Boolean): ByteArray {
+        val mode = if (enable) 0b00000001 else 0b00000000
+        return byteArrayOf(AsciiByte.ESC, AsciiByte.PERCENT_SIGN, mode.toByte())
+    }
+
+    /**
+     * ESC & s n m w d1 d2..dx
+     * Define User-defined characters
+     *
+     * The command is used to define user-defined character.
+     * Max 64 user chars can be defined.
+     *
+     * s = 3, 32 ≤ n ≤ m < 127
+     * s: Character height bytes, = 3 (24dots)
+     * n: User-defined character starting code
+     * m: User-defined character ending code
+     * w: Character width 0～12 (s = 3)
+     * dx: data, x=s*w
+     *
+     * s=3
+     * ```
+     * --------------------------------------
+     * | d1 | d4 | d7 | | | | | | | | |     |
+     * --------------------------------------
+     * | d2 | d5 | d8 | | | | | | | | |     |
+     * --------------------------------------
+     * | d3 | d6 | d9 | | | | | | | | | d36 |
+     * --------------------------------------
+     *```
+     *
+     * dx format:
+     * ```
+     * |------|------|
+     * |      | BIT7 |
+     * |      |------|
+     * |      | BIT6 |
+     * |      |------|
+     * |      | BIT5 |
+     * |      |------|
+     * |      | BIT4 |
+     * |  dx  |------|
+     * |      | BIT3 |
+     * |      |------|
+     * |      | BIT2 |
+     * |      |------|
+     * |      | BIT1 |
+     * |      |------|
+     * |      | BIT0 |
+     * |------|------|
+     * ```
+     *
+     * @return `ByteArray` with command
+     * */
+    fun setUserDefinedCharacterData(s: Int, n: Int, m: Int, w: Int, data: ByteArray): ByteArray {
+        return byteArrayOf(
+            AsciiByte.ESC, AsciiByte.AMPERSAND,
+            s.toByte(), n.toByte(), m.toByte(), w.toByte(),
+            *data
+        )
+    }
+
+    /**
+     * ESC ? n
+     * Disable user-defined character
+     *
+     * n = 32 – 126
+     * Deletes the user-defined character pattern specified by character code n.
+     *
+     * @param n character code to disable
+     *
+     * @return `ByteArray` with command
+     * */
+    fun disableUserDefinedCharacter(@IntRange(from = 32, to = 126) n: Int): ByteArray {
+        return byteArrayOf(AsciiByte.ESC, AsciiByte.QUESTION_MARK, n.toByte())
+    }
 
     ///////////////////////////////////// CHARACTER COMMANDS ///////////////////////////////////////
+
+
+    ///////////////////////////////////// PRINT POSITION COMMANDS ///////////////////////////////////////
+
+    /**
+     * HT
+     * Horizontal tab
+     *
+     * Moves the print position to the next horizontal tab position.
+     *
+     * @return `ByteArray` with command
+     */
+    fun horizontalTab(): ByteArray {
+        return byteArrayOf(AsciiByte.HT)
+    }
+
+    /**
+     * ESC $ nL nH
+     * Set absolute print position
+     *
+     * (nL + nH × 256) = 0 – 65535
+     * Moves the print position to (nL + nH × 256) × (horizontal or vertical motion unit) from
+     * the left edge of the print area.
+     *
+     * @param nL
+     * @param nH
+     *
+     * @return `ByteArray` with command
+     * */
+    fun setPrintPosition(nL: Int, nH: Int): ByteArray {
+        return byteArrayOf(AsciiByte.ESC, AsciiByte.DOLLAR_SIGN, nL.toByte(), nH.toByte())
+    }
+
+    /**
+     * ESC D n1 ... nk NUL
+     * Set horizontal tab positions
+     *
+     * n = 1 – 255
+     * k = 0 – 32
+     *
+     * default
+     * n = 8, 16, 24, 32, ..., 232, 240, 248 (Every eight characters for the default font set)
+     *
+     * Sets horizontal tab positions.
+     * * n specifies the number of digits from the setting position to the left edge of the print area.
+     * * k indicates the number of horizontal tab positions to be set.
+     *
+     * @param positions tab positions to set
+     *
+     * @return `ByteArray` with command
+     * */
+    fun setHorizontalTabPositions(vararg positions: Int): ByteArray {
+        return byteArrayOf(
+            AsciiByte.ESC,
+            AsciiByte.UPPERCASE_D,
+            *positions.map { it.toByte() }.toByteArray(),
+            positions.size.toByte()
+        )
+    }
+
+    /**
+     * ESC T n
+     * Select print direction in Page mode
+     *
+     * n = 0 – 3, 48 – 51, default 0
+     * in Page mode, selects the print direction and starting position using n as follows:
+     * ```
+     * -------------------------------------------------------
+     * |   n   | Print direction |     Starting position     |
+     * |-----------------------------------------------------|
+     * | 0, 48 |  Left to right  |  Upper left (A in figure) |
+     * | 1, 49 |  Bottom to top  |  Lower left (B in figure) |
+     * | 2, 50 |  Right to left  | Lower right (C in figure) |
+     * | 3, 51 |  Top to bottom  | Upper right (D in figure) |
+     * -------------------------------------------------------
+     *
+     * --------------------------
+     * | A --->               D |
+     * |                      | |
+     * |                      | |
+     * | ^                    ˅ |
+     * | |                      |
+     * | |                      |
+     * | B               <--- C |
+     * --------------------------
+     *         FIGURE
+     * ```
+     * @param n direction
+     *
+     * @return `ByteArray` with command
+     * */
+    fun setPrintDirection(n: Int): ByteArray {
+        return byteArrayOf(AsciiByte.ESC, AsciiByte.UPPERCASE_T, n.toByte())
+    }
+
+    /**
+     * ESC W xL xH yL yH dxL dxH dyL dyH
+     * Select print area in page mode
+     *
+     * (xL + xH × 256) = 0 – 65535
+     * (yL + yH × 256) = 0 – 65535
+     * (dxL + dxH × 256) = 1 – 65535
+     * (dyL + dyH × 256) = 1 – 65535
+     *
+     * default:
+     * Horizontal logical origin and vertical logical origin = 0
+     * (xL + xH × 256) = 0
+     * (yL + yH × 256) = 0
+     * Print area width (dxL + dxH × 256) and print area height (dyL + dyH × 256) = entire printable area:
+     * different depending on the printers
+     *
+     * in Page mode, sets the size and the logical origin of the print area as follows:
+     * * Horizontal logical origin = (xL + xH × 256) × (horizontal motion unit) from absolute origin.
+     * * Vertical logical origin = (yL + yH × 256) × (vertical motion unit) from absolute origin.
+     * * Print area width = (dxL + dxH × 256) × (horizontal motion unit)
+     * * Print area height = (dyL + dyH × 256) × (vertical motion unit)
+     *
+     * @return `ByteArray` with command
+     */
+    fun setPrintArea(
+        xL: Int,
+        xH: Int,
+        yL: Int,
+        yH: Int,
+        dxL: Int,
+        dxH: Int,
+        dyL: Int,
+        dyH: Int
+    ): ByteArray {
+        return byteArrayOf(
+            AsciiByte.ESC,
+            AsciiByte.UPPERCASE_W,
+            xL.toByte(),
+            xH.toByte(),
+            yL.toByte(),
+            yH.toByte(),
+            dxL.toByte(),
+            dxH.toByte(),
+            dyL.toByte(),
+            dyH.toByte()
+        )
+    }
+
+    /**
+     * ESC \ nL nH
+     *
+     * */
+
+    ///////////////////////////////////// PRINT POSITION COMMANDS ///////////////////////////////////////
 
 
     /*
@@ -567,141 +927,6 @@ object PrinterCommands {
     * */
     fun disableDoubleWidthMode(): ByteArray {
         return byteArrayOf(AsciiByte.ESC, AsciiByte.DC4)
-    }
-
-    /*
-    * ESC { n
-    * Set/Cancel Character Updown mode
-    *
-    * n=1 Enable Updown mode
-    * n=0 Disable Updown mode
-    * Default value is 0
-    * */
-    fun setUpDownMode(enable: Boolean): ByteArray {
-        val mode = if (enable) 1 else 0
-        return byteArrayOf(AsciiByte.ESC, AsciiByte.LEFT_BRACE, mode.toByte())
-    }
-
-    /*
-    * GS B n
-    * Turn white/black reverse printing mode on/off
-    *
-    * n=1 Enable white/black reverse mode
-    * n=0 Disable white/black reverse mode
-    * Default value is 0
-    * */
-    fun setColorReverse(reverse: Boolean): ByteArray {
-        val mode = if (reverse) 1 else 0
-        return byteArrayOf(AsciiByte.GS, AsciiByte.UPPERCASE_B, mode.toByte())
-    }
-
-    /*
-    * ESC % n
-    * Enable Disable User-defined Characters
-    *
-    * n=0 Enable User-defined characters
-    * n=1 Disable User-defined characters
-    * */
-    fun enableUserDefinedCharacters(enable: Boolean): ByteArray {
-        val mode = if (enable) 1 else 0
-        return byteArrayOf(AsciiByte.ESC, AsciiByte.PERCENT_SIGN, mode.toByte())
-    }
-
-    /*
-    * ESC & s n m w d1 d2..dx
-    * Define User-defined characters
-    *
-    * The command is used to define user-defined character.
-    * Max 64 user chars can be defined.
-    *
-    * s = 3, 32 ≤ n ≤ m < 127
-    * s: Character height bytes, = 3 (24dots)
-    * w: Character width 0～12 (s = 3)
-    * n: User-defined character starting code
-    * m: User-defined character ending code
-    * dx: data, x=s*w
-    *
-    * s=3
-    * --------------------------------------
-    * | d1 | d4 | d7 | | | | | | | | |     |
-    * --------------------------------------
-    * | d2 | d5 | d8 | | | | | | | | |     |
-    * --------------------------------------
-    * | d3 | d6 | d9 | | | | | | | | | d36 |
-    * --------------------------------------
-    *
-    * dx format:
-    * |------|------|
-    * |      | BIT7 |
-    * |      |------|
-    * |      | BIT6 |
-    * |      |------|
-    * |      | BIT5 |
-    * |      |------|
-    * |      | BIT4 |
-    * |  dx  |------|
-    * |      | BIT3 |
-    * |      |------|
-    * |      | BIT2 |
-    * |      |------|
-    * |      | BIT1 |
-    * |      |------|
-    * |      | BIT0 |
-    * |------|------|
-    * */
-    fun setUserDefinedCharacterData(s: Int, n: Int, m: Int, w: Int, data: ByteArray): ByteArray {
-        return byteArrayOf(
-            AsciiByte.ESC, AsciiByte.AMPERSAND,
-            s.toByte(), n.toByte(), m.toByte(), w.toByte(),
-            *data
-        )
-    }
-
-    /*
-    * ESC ? n
-    * Disable user-defined character
-    *
-    * ESC ? n disable user-defined characters, printer will
-    * use the internal character.
-    * */
-    fun disableUserDefinedCharacter(): ByteArray {
-        return byteArrayOf(AsciiByte.ESC, AsciiByte.QUESTION_MARK, 0x0)
-    }
-
-    /*
-    * ESC R m
-    * Select an internal character set
-    *
-    * Select an internal character set n as follows:
-    * 0: USA
-    * 1: France
-    * 2: Germany
-    * 3: UK
-    * 4: Denmark I
-    * 5: Sweden
-    * 6: Italy
-    * 7: Spain I
-    * 8: Japan
-    * 9: Norway
-    * 10: Denmark II
-    * 11: Spain II
-    * 12: Latin America
-    * 13: Korea
-    * */
-    fun setCharacterSet(@IntRange(from = 0, to = 13) charSet: Int): ByteArray {
-        return byteArrayOf(AsciiByte.ESC, AsciiByte.UPPERCASE_R, charSet.toByte())
-    }
-
-    /*
-    * ESC t n
-    * Select character code table
-    *
-    * Select a page n from the character code table as follows:
-    * 0:437
-    * 1:850
-    * */
-    fun selectCharCodeTable(@IntRange(from = 0, to = 1) n: Int): ByteArray {
-        return byteArrayOf(AsciiByte.ESC, AsciiByte.LOWERCASE_T, n.toByte())
     }
 
     /*
@@ -995,9 +1220,10 @@ object PrinterCommands {
         return byteArrayOf(
             AsciiByte.GS,
             AsciiByte.LOWERCASE_K,
-            m.toByte(),
-            data.length.toByte(),
-            *data.toByteArray()
+            m.toByte()
+//            ,
+//            data.length.toByte(),
+//            *data.toByteArray()
         )
     }
 
